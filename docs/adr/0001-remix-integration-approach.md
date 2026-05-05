@@ -1,9 +1,10 @@
 # ADR-0001: Remix Integration Approach — Plugin vs. Fork Modification
 
-- **Status:** Proposed (decision deferred pending plugin-API spike)
+- **Status:** Accepted (2026-05-05) — Option C, plugin first, fork later if needed
 - **Date:** 2026-05-05
 - **Deciders:** Stevo
 - **Context source:** [`SEED.md`](../../SEED.md), Open Question #1
+- **Supporting evidence:** [`docs/research/remix-plugin-api-spike.md`](../research/remix-plugin-api-spike.md)
 
 ## Context
 
@@ -102,48 +103,90 @@ React module that can be embedded either way.
 - Mitigated if we keep the visual layer as a standalone React module
   with a thin Remix-plugin wrapper from day one.
 
+## Spike findings
+
+A desk-research spike against Remix's current plugin engine (canonical repo:
+`remix-project-org/remix-plugin`; client lib: `@remixproject/plugin-webview`)
+confirms all four capability questions:
+
+- **Custom panel rendering:** plugins set `location: 'sidePanel' | 'mainPanel'`
+  in their profile and are loaded into a host iframe — any HTML/CSS/JS,
+  including a full React app. Cross-iframe comms via `postMessage`. Modal /
+  popout / chrome-injection are *not* part of the public surface, so
+  SolidiFlow's UI must fit within sidePanel or mainPanel.
+- **File workspace I/O:** the `fileManager` API exposes `readFile`, `writeFile`,
+  `rename`, `copyFile`, `mkdir`, `readdir`, `getCurrentFile`, `open`, plus
+  events on file changes (`currentFileChanged`, `fileSaved`, `fileAdded`,
+  `fileRemoved`, `fileRenamed`). No documented size limits; binary content
+  needs base64.
+- **Trigger compilation:** the `solidity` plugin exposes `compile(fileName)`,
+  `compileWithParameters(sources, settings)`, `setCompilerConfig(settings)`,
+  and `getCompilationResult()`. Result matches the Solidity standard JSON
+  output (ABI, bytecode, errors, sources).
+- **Compile / deploy events:** `client.solidity.on('compilationFinished', …)`
+  fires for both success and failure (errors are part of the same payload —
+  no separate `compilationFailed` event). Deploy events via
+  `client.udapp.on('newTransaction', …)`; receipts returned synchronously by
+  `udapp.sendTransaction`.
+
+Caveats worth carrying forward:
+- The plugin docs site (`remix-plugin-docs.readthedocs.io`) is stamped 2020;
+  master spec on the `remix-project-org/remix-plugin` repo adds methods and
+  events not present on the docs site. **Code against master, not readthedocs.**
+- First-time cross-plugin calls (e.g. `solidity.compile`) trigger the Plugin
+  Manager permission modal — first-run UX cost to plan for.
+- `postMessage` size limits and binary-file handling are undocumented; risk
+  for very large source maps but not for v0.1 use cases.
+
+Full notes including source URLs in
+[`docs/research/remix-plugin-api-spike.md`](../research/remix-plugin-api-spike.md).
+
 ## Decision
 
-**Deferred.** Recommendation pending a time-boxed spike (≤ 2 days) into
-Remix's current plugin API, with the following question:
+**Option C — plugin first, fork later if needed.**
 
-> Can a Remix plugin (a) render a custom panel of arbitrary size,
-> (b) read and write files in the Remix workspace, (c) trigger compilation
-> of generated Solidity, and (d) listen for compile/deploy events?
+All four MVP capabilities are first-class API. A vanilla
+`@remixproject/plugin-webview`-based plugin is shippable to any
+`remix.ethereum.org` user, avoids maintaining a Remix fork, inherits upstream
+upgrades for free, and keeps the visual-layer code as a portable React module
+that can be re-embedded into a fork later if the plugin path hits a wall.
 
-If all four are yes with acceptable performance, **Option C (plugin first,
-fork later if needed)** is the leading recommendation. If one or more is no
-or pluginAPI-restricted, **Option B (fork modification)** becomes the
-recommendation.
+A fork is reserved for any of these triggers, not committed to in advance:
+modal/chrome integration beyond sidePanel/mainPanel, same-origin React
+integration, compile-pipeline hooks not exposed to plugins, or a
+single-product distribution story for v1.0+ ("install SolidiFlow" rather than
+"install Remix, add this plugin").
 
 ## Consequences
 
-Independent of the eventual choice, the following are required:
+Following from Option C:
 
 - The SolidiFlow visual layer is implemented as a standalone React module
-  with a clean external interface (props/events for IR in/out, Solidity
+  with a clean external interface (props / events for IR in/out, Solidity
   out, file-write requests). This keeps the plugin-vs-fork decision
   reversible.
+- We adopt `@remixproject/plugin-webview` as the host-comms client library.
+- A plugin manifest (profile name, displayName, location, methods, events)
+  is established early.
+- Upstream Remix becomes a versioned dependency we test against, but is
+  not vendored. Compatibility breaks observed against new Remix versions
+  are documented as ADR follow-ups, not silently absorbed.
+- We code against the master spec of `remix-project-org/remix-plugin`,
+  not the 2020-stamped readthedocs site.
 - The intermediate representation (SEED Open Question #2) is designed
-  before the visual layer code lands. The IR is the boundary between
-  the visual layer and the Solidity generator, and is unaffected by the
-  Remix integration choice.
+  in parallel; it is the boundary between the visual layer and the
+  Solidity generator and is unaffected by this decision.
 
-If Option C / plugin path is taken:
-- Plugin metadata, manifest, and packaging conventions need to be
-  established early.
-- Upstream Remix becomes a versioned dependency we test against.
-
-If Option B / fork path is taken:
-- A `upstream` git remote tracks Remix's main branch; merges happen on a
-  cadence (proposal: monthly).
-- The SolidiFlow product README documents which Remix version the fork
-  is currently rebased onto.
+Forking is not currently planned. If any of the trigger conditions in
+the Decision section above are hit, we open an ADR-0002 to revisit.
 
 ## Follow-ups
 
-- **Spike task:** evaluate the four plugin-API questions above against
-  current Remix. Result captured in a follow-up note appended to this
-  ADR or in a new ADR-0002 if the conclusion is non-obvious.
-- **IR design:** open ADR-0003 once the plugin/fork decision is made;
-  the IR design proceeds in parallel and does not block on this ADR.
+- **IR design:** initial draft at
+  [`docs/ir/0001-ir-schema-v0.md`](../ir/0001-ir-schema-v0.md).
+- **Plugin scaffold:** stand up a minimal `@remixproject/plugin-webview`
+  React app that loads into Remix's sidePanel and round-trips a single
+  Function Node + State Node through the IR to deployable Solidity
+  (the SEED Immediate Next Action #5 prototype).
+- **Manifest / profile design:** name, displayName, methods, events, and
+  permission scope for the SolidiFlow plugin. Captured in a future ADR.
