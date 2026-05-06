@@ -905,9 +905,9 @@ _burn(from, amount);            <span class="cm">// destroys tokens</span></code
 
 <p>The advance functions are generated entirely from the <code>phaseTransition</code> edges in figure 3. The phase guards on the user-facing functions (<code>submitDeliverable</code>, <code>postMeasurement</code>, <code>resolve</code>) are what would be auto-injected if SolidiFlow takes the auto-inject interpretation of open question 2 below.</p>
 
-<h2 id="open-questions">10. Three deferred IR design questions, restated</h2>
+<h2 id="open-questions">10. Three previously-deferred IR design questions, now resolved</h2>
 
-<p>The IR draft surfaced nine open questions. Three of them shape what code the generator emits, and have a tangible answer once the rest of this primer has been read.</p>
+<p>The IR draft surfaced nine open questions. Three of them shape what code the generator emits. They were initially deferred for design grounding, and have now been resolved by <a href="../adr/0002-authoring-time-constraints.md">ADR-0002 (Authoring-time constraint, not output-time validation)</a> &mdash; they're recorded here for the reader who wants to understand <em>why</em> SolidiFlow does what it does, even though the design calls themselves are no longer up for grabs.</p>
 
 <h3>Question A. Self-token Token Flow auto-detection</h3>
 
@@ -917,19 +917,19 @@ _burn(from, amount);            <span class="cm">// destroys tokens</span></code
   <li>"Treat this contract like any other ERC-20 and call its public functions" &rarr; emit a regular external <code>transferFrom</code>.</li>
 </ul>
 <p><strong>Stakes.</strong> Internal calls are cheaper, idiomatic, and don't raise reentrancy concerns. External calls are how you'd interact with a <em>different</em> ERC-20 (USDC, DAI, etc.) from inside CompuToken's code.</p>
-<p><strong>Recommendation.</strong> Auto-detect by default (visual arrow targeting the same contract that contains it &rarr; internal form). Surface the choice in the property panel as an "internal / external" toggle so users can override when needed.</p>
+<p><strong>Decision (ADR-0002).</strong> Auto-detect by default (visual arrow targeting the same contract that contains it &rarr; internal form). Property-panel toggle lets the user force the external form when needed.</p>
 
 <h3>Question B. Phase-scoped Function auto-guard</h3>
 
 <p><strong>Setup.</strong> When a Function Node is in a Phase Node's <code>attachedFunctionIds</code>, the user is saying "this function belongs to this phase." For the Solidity to actually <em>enforce</em> the phase &mdash; so e.g. <code>submitDeliverable</code> can't be called during PoR &mdash; there needs to be a <code>require(currentPhase == Phase.PoD)</code> at the top of the function body.</p>
 <p><strong>Stakes.</strong> Auto-injecting that <code>require</code> matches user intuition (drawing a function inside a phase <em>means</em> it's only callable in that phase). Requiring an explicit Condition Node is more verbose, but more visible.</p>
-<p><strong>Recommendation.</strong> Auto-inject by default, with an opt-out flag in the Function Node's data for cases where the user wants the function callable across phases.</p>
+<p><strong>Decision (ADR-0002).</strong> Auto-inject by default, with a <code>disablePhaseGuard</code> opt-out flag in the Function Node's data for cases where the user wants the function callable across phases.</p>
 
 <h3>Question C. Constructor as a Function Node or its own type</h3>
 
 <p><strong>Setup.</strong> Constructors in Solidity are special. They run once at deployment, can take parameters that influence the deployed contract's permanent configuration, can set <code class="kw">immutable</code> state variables (which regular functions can't), and don't have <code class="kw">external</code> / <code class="kw">public</code> visibility (they're called by the deployment process, not afterwards).</p>
 <p><strong>Stakes.</strong> Modelling a constructor as a regular Function Node with <code>name == "constructor"</code> works syntactically but conflates it with normal methods in the visual layer. A dedicated Constructor Node type is more honest and lets the editor surface the special bits (initial values for <code class="kw">immutable</code>s, inherited constructor calls like ERC20's name/symbol).</p>
-<p><strong>Recommendation.</strong> Dedicated Constructor Node type in v0.1. Both CGP and P2PCP need constructors immediately (oracle address, ERC-20 name/symbol, initial deadlines), so this <em>will</em> show up.</p>
+<p><strong>Decision (ADR-0002).</strong> Dedicated Constructor Node type in v0.1. Both CGP and P2PCP need constructors immediately (oracle address, ERC-20 name/symbol, initial deadlines), so this <em>will</em> show up early.</p>
 
 <h2 id="exercises">11. Exercises</h2>
 

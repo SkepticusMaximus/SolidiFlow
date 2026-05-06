@@ -423,6 +423,28 @@ guard `Condition` and assign `currentPhase = Phase.PoM` (etc.).
 
 ## 7. Open questions
 
+> **Resolution note (2026-05-07):** Three of the questions originally listed
+> here — Constructor modelling, Self-token Token Flow auto-detection, and
+> Phase-scoped Function auto-guard — were resolved by
+> [ADR-0002](../adr/0002-authoring-time-constraints.md) and are now
+> *Decisions* below rather than *Questions*. The IR v0.1 schema will absorb
+> these in a follow-up update. The remaining items below are still open.
+
+### Decisions (resolved by ADR-0002)
+
+- **Constructor.** *Dedicated Constructor Node type in v0.1.* Not a
+  Function Node named `"constructor"`.
+- **Token Flow vs ERC-20 internals.** *Auto-detect with override.* A
+  `tokenFlow` arrow on the contract's own ERC-20 balance compiles to the
+  internal form (`_transfer` / `_mint` / `_burn`). A property-panel toggle
+  forces the external form when needed.
+- **Phase-scoped Functions.** *Auto-inject with override.* The generator
+  auto-injects `require(currentPhase == Phase.X, "...")` at the top of any
+  Function Node attached to a Phase Node. A `disablePhaseGuard: true` flag
+  on the Function Node opts out.
+
+### Still open
+
 - **Function bodies — graph or AST?** v0 leans graph (control edges +
   side-effect edges). Complex arithmetic inside a function still has to be a
   string expression on a Condition or Event node. v0.2 should consider a
@@ -433,26 +455,16 @@ guard `Condition` and assign `currentPhase = Phase.PoM` (etc.).
 - **Inheritance and overrides.** `contracts[].inherits` is a flat list; we
   haven't modelled `override` markers on Function Nodes. Likely a
   `data.override: true` flag plus a `virtual` flag in v0.1.
-- **Constructor.** Implicit for now (a Function Node named `constructor`?).
-  Probably needs its own node type in v0.2 for clarity.
-- **Token Flow vs ERC-20 internals.** A `tokenFlow` arrow on an ERC-20
-  contract that operates on its *own* balances should compile to internal
-  `_transfer`, not to an external call. Disambiguating "self-token" vs
-  "external token" needs Stevo's call.
 - **Modifier composition.** Multiple modifiers on one function — order
   matters in Solidity. We preserve order via the `modifiers[]` array, but
   should we surface that in the visual layer (drag-to-reorder) or treat it
   as a property panel concern?
-- **Phase-scoped functions.** `attachedFunctionIds` says "this function is
-  callable in this phase" — should the generator auto-inject a
-  `require(currentPhase == Phase.X)` guard, or must the user wire it
-  explicitly via a Condition Node? Lean toward auto-inject with an opt-out
-  flag, but flagging for review.
 - **Layout metadata granularity.** We store `position`, `width`, `height`
   but not edge waypoints, node colour, or collapsed/expanded state.
   Round-trip fidelity is therefore "good enough" but not perfect; v0.2
   should add an `editorMeta` blob per node/edge.
 - **Validation seam.** JSON Schema covers shape; semantic validation
   (e.g. "every Condition reachable from a Function must terminate in a
-  return or revert") is generator-side. Whether to publish this as a
-  separate linter is an open question.
+  return or revert") is generator-side. Per ADR-0002 this becomes a
+  first-class layer between IR and generator; its detailed scope is a
+  future ADR.

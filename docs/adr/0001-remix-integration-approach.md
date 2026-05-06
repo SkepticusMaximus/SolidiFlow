@@ -184,6 +184,9 @@ the Decision section above are hit, we open an ADR-0002 to revisit.
 
 - **IR design:** initial draft at
   [`docs/ir/0001-ir-schema-v0.md`](../ir/0001-ir-schema-v0.md).
+- **Authoring-time-constraint principle:** captured in
+  [ADR-0002](./0002-authoring-time-constraints.md), which also resolves
+  the three IR open questions that were deferred at the time of this ADR.
 - **Plugin scaffold:** stand up a minimal `@remixproject/plugin-webview`
   React app that loads into Remix's sidePanel and round-trips a single
   Function Node + State Node through the IR to deployable Solidity
