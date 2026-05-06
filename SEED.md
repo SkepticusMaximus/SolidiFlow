@@ -1,10 +1,26 @@
 # SolidiFlow
 ## Project Seed Document
 
-**Status:** Pre-inception. No code. No repository. This document is the founding artefact.
+**Status:** Pre-inception. No code. The repository now exists. This document is the founding artefact.
 **Date:** May 2026
 **Author:** Stevo (SkepticusMaximus)
-**Repository:** TBD — GitHub repo setup is the immediate next action from this document.
+**Repository:** [SkepticusMaximus/SolidiFlow](https://github.com/SkepticusMaximus/SolidiFlow)
+
+---
+
+> ### Update note (post-spike)
+>
+> The "fork of Remix" framing throughout this seed document was the founding
+> assumption made before any investigation into Remix's plugin engine.
+> [ADR-0001](./docs/adr/0001-remix-integration-approach.md), accepted in May 2026
+> after a plugin-API spike, resolved the integration approach to **plugin first,
+> fork later if needed**. SolidiFlow v0.1 is therefore planned as a Remix
+> *plugin* using `@remixproject/plugin-webview`, not a Remix fork.
+>
+> The body of this document is preserved as written. Where it says "fork",
+> read "plugin"; where it describes the fork as "the immediate implementation
+> target", see ADR-0001 for the current direction. Open Question #1
+> ("Plugin vs. fork modification") is resolved.
 
 ---
 
