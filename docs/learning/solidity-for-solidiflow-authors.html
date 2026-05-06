@@ -161,6 +161,17 @@
   .tag-mandated  { background: #f6c5c5; color: #761b1b; }
   .tag-developer { background: #c5dcf6; color: #1b3a72; }
   .tag-solidiflow { background: #d4f0c5; color: #1c581c; }
+  .node-icon {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+  }
+  h3.primitive {
+    display: flex;
+    align-items: center;
+    gap: 0.85em;
+  }
+  h3.primitive span { flex-grow: 1; }
   .toc {
     background: #f0f3f6;
     padding: 1em 1.5em 1em 2.5em;
@@ -574,11 +585,11 @@
 
 <p>This section walks through the nine node types in the SolidiFlow IR (see the <a href="../ir/0001-ir-schema-v0.md">IR schema doc</a> for the JSON shapes) and shows what each one produces in Solidity.</p>
 
-<h3>State Node &rarr; state variable</h3>
+<h3 class="primitive"><svg class="node-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><ellipse cx="40" cy="22" rx="24" ry="7" fill="#eef5fb" stroke="#2a5d8f" stroke-width="2"/><line x1="16" y1="22" x2="16" y2="58" stroke="#2a5d8f" stroke-width="2"/><line x1="64" y1="22" x2="64" y2="58" stroke="#2a5d8f" stroke-width="2"/><path d="M16 58 A24 7 0 0 0 64 58" fill="none" stroke="#2a5d8f" stroke-width="2"/><path d="M16 36 A24 7 0 0 0 64 36" fill="none" stroke="#2a5d8f" stroke-width="1.2" opacity="0.6"/><path d="M16 47 A24 7 0 0 0 64 47" fill="none" stroke="#2a5d8f" stroke-width="1.2" opacity="0.6"/></svg><span>State Node &rarr; state variable</span></h3>
 
 <p>A State Node represents a single piece of persistent contract data. Its property panel exposes: <em>name</em>, <em>type</em>, <em>visibility</em>, <em>constant / immutable / neither</em>, and an optional <em>initial value</em>. The generator emits one Solidity state variable declaration per State Node. Already covered in detail in <a href="#anatomy">section 6</a>.</p>
 
-<h3>Function Node &rarr; function</h3>
+<h3 class="primitive"><svg class="node-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="14" y="20" width="52" height="40" rx="4" fill="#eef5fb" stroke="#2a5d8f" stroke-width="2"/><text x="40" y="48" font-family="Cascadia Code, Menlo, monospace" font-size="20" font-style="italic" fill="#2a5d8f" text-anchor="middle" font-weight="700">f(x)</text></svg><span>Function Node &rarr; function</span></h3>
 
 <p>A Function Node represents a callable function. The user fills in: <em>name</em>, <em>visibility</em>, <em>mutability</em>, <em>parameters</em>, <em>returns</em>, and a list of <em>modifiers</em> attached to it.</p>
 
@@ -614,7 +625,7 @@
   </tbody>
 </table>
 
-<h3>Modifier Node &rarr; modifier</h3>
+<h3 class="primitive"><svg class="node-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M40 12 L62 22 V40 Q62 56 40 68 Q18 56 18 40 V22 Z" fill="#eef5fb" stroke="#2a5d8f" stroke-width="2"/><polyline points="30,40 38,48 52,32" fill="none" stroke="#2a5d8f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Modifier Node &rarr; modifier</span></h3>
 
 <p>A Modifier Node represents a reusable pre-condition that wraps any function it's attached to.</p>
 
@@ -632,7 +643,7 @@
 
 <p>If the require fails, the function never runs. Multiple modifiers stack in declaration order. SolidiFlow models the attachment as a <em>property of the Function Node</em> (a list of modifier IDs) rather than as a graph edge, because the attachment is part of the function's signature.</p>
 
-<h3>Condition Node &rarr; require / if-else</h3>
+<h3 class="primitive"><svg class="node-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><polygon points="40,12 64,40 40,68 16,40" fill="#eef5fb" stroke="#2a5d8f" stroke-width="2"/><text x="40" y="48" font-family="-apple-system, sans-serif" font-size="24" fill="#2a5d8f" text-anchor="middle" font-weight="700">?</text></svg><span>Condition Node &rarr; require / if-else</span></h3>
 
 <p>Condition Nodes have two flavours, captured by their <code>style</code> property. <code>style: "require"</code> compiles to:</p>
 
@@ -648,7 +659,7 @@
 
 <p>The <code>pass</code> and <code>fail</code> source handles on the Condition Node map directly to which branch the downstream nodes belong to. For <code>require</code> style, only <code>pass</code> continues; <code>fail</code> triggers the revert and is left unwired.</p>
 
-<h3>Event Node &rarr; event + emit</h3>
+<h3 class="primitive"><svg class="node-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="40" cy="40" r="6" fill="#2a5d8f"/><path d="M28 28 Q24 40 28 52" fill="none" stroke="#2a5d8f" stroke-width="2" stroke-linecap="round"/><path d="M52 28 Q56 40 52 52" fill="none" stroke="#2a5d8f" stroke-width="2" stroke-linecap="round"/><path d="M20 22 Q14 40 20 58" fill="none" stroke="#2a5d8f" stroke-width="2" stroke-linecap="round" opacity="0.55"/><path d="M60 22 Q66 40 60 58" fill="none" stroke="#2a5d8f" stroke-width="2" stroke-linecap="round" opacity="0.55"/></svg><span>Event Node &rarr; event + emit</span></h3>
 
 <p>Events write entries to the chain log &mdash; a special append-only stream visible to off-chain readers (block explorers, dapp frontends, indexers) but not readable from inside Solidity. They exist mostly so user interfaces can detect that something happened without polling the contract's state. The declaration:</p>
 
@@ -660,7 +671,7 @@
 
 <p>The Event Node is the <em>declaration</em>; the <em>emit</em> is a <code>sideEffect</code> edge from a Function Node to the Event Node. The same Event Node can be emitted from many functions; each function-to-event link is its own edge.</p>
 
-<h3>Time Trigger Node &rarr; block.timestamp comparison</h3>
+<h3 class="primitive"><svg class="node-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="40" cy="40" r="26" fill="#eef5fb" stroke="#2a5d8f" stroke-width="2"/><line x1="40" y1="40" x2="40" y2="22" stroke="#2a5d8f" stroke-width="2.5" stroke-linecap="round"/><line x1="40" y1="40" x2="54" y2="44" stroke="#2a5d8f" stroke-width="2.5" stroke-linecap="round"/><circle cx="40" cy="40" r="2.5" fill="#2a5d8f"/><line x1="40" y1="14" x2="40" y2="18" stroke="#2a5d8f" stroke-width="1.5"/><line x1="40" y1="62" x2="40" y2="66" stroke="#2a5d8f" stroke-width="1.5"/><line x1="14" y1="40" x2="18" y2="40" stroke="#2a5d8f" stroke-width="1.5"/><line x1="62" y1="40" x2="66" y2="40" stroke="#2a5d8f" stroke-width="1.5"/></svg><span>Time Trigger Node &rarr; block.timestamp comparison</span></h3>
 
 <p>A Time Trigger Node is a specialised Condition Node &mdash; semantically the same shape but flagged for the editor (clock icon) and the generator (recognise time-decay patterns). It compiles to:</p>
 
@@ -668,7 +679,7 @@
 
 <p>The whole "consensus determinism forbids real-world time" caveat applies: <code>block.timestamp</code> is the <em>block</em> timestamp, deterministic across nodes (because they read it from the same block header) but coarse and validator-influenceable. Fine for "after deadline" logic; useless for finer-grained timing.</p>
 
-<h3>External Call Node &rarr; interface call</h3>
+<h3 class="primitive"><svg class="node-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="8" y="22" width="32" height="36" rx="4" fill="#eef5fb" stroke="#2a5d8f" stroke-width="2"/><rect x="56" y="32" width="20" height="22" rx="3" fill="#fff" stroke="#2a5d8f" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="40" y1="43" x2="54" y2="43" stroke="#2a5d8f" stroke-width="2.5"/><polyline points="50,38 56,43 50,48" fill="none" stroke="#2a5d8f" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg><span>External Call Node &rarr; interface call</span></h3>
 
 <p>Calling a different deployed contract goes through that contract's <em>interface</em>:</p>
 
@@ -689,7 +700,7 @@
 
 <p><code>IERC20(usdcAddress).transferFrom(...)</code> reads "treat the contract at <code>usdcAddress</code> as if it implements <code>IERC20</code>'s function signatures, and call <code>transferFrom</code>." If the target doesn't actually implement that signature, you get a runtime revert.</p>
 
-<h3>Phase Node &rarr; enum + state variable + guards</h3>
+<h3 class="primitive"><svg class="node-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="40" cy="40" r="26" fill="#f4eef8" stroke="#6b3a96" stroke-width="2"/><circle cx="40" cy="40" r="22" fill="none" stroke="#6b3a96" stroke-width="1.2" opacity="0.7"/><text x="40" y="44" font-family="-apple-system, sans-serif" font-size="11" fill="#6b3a96" text-anchor="middle" font-weight="700" letter-spacing="1">PHASE</text></svg><span>Phase Node &rarr; enum + state variable + guards</span></h3>
 
 <p>Phase Nodes compile to three coordinated pieces of Solidity: an <code class="kw">enum</code> declaring the phase names, a state variable holding the current phase, and (optionally auto-injected) <code class="kw">require</code> guards in each phase-scoped function.</p>
 
@@ -769,7 +780,7 @@ Phase <span class="kw">public</span> currentPhase;
 <figcaption>Figure 3. The CGP Agent's three-phase state machine, expressed as Phase Nodes connected by phase-transition edges. Each transition has a guard condition (here a time check). The corresponding Solidity is on the page above.</figcaption>
 </figure>
 
-<h3>Token Flow Arrow &rarr; transfer / transferFrom / internal _transfer</h3>
+<h3 class="primitive"><svg class="node-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="22" cy="40" r="13" fill="#eef5fb" stroke="#2a5d8f" stroke-width="2"/><circle cx="22" cy="40" r="9" fill="none" stroke="#2a5d8f" stroke-width="1.2"/><line x1="38" y1="40" x2="62" y2="40" stroke="#2a5d8f" stroke-width="2.5" stroke-linecap="round"/><polyline points="56,34 64,40 56,46" fill="none" stroke="#2a5d8f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Token Flow Arrow &rarr; transfer / transferFrom / internal _transfer</span></h3>
 
 <p>The only IR primitive that has multiple Solidity translations depending on context. Three cases:</p>
 
